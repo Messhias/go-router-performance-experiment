@@ -49,3 +49,5 @@ Moving on I decided to start the setup golang essentials (and it's packages)
 One decision I took in relation of it, it is not use fixed versions of the images, I always hate legacy and the promise of "later we update it" is a lie that every developer likes to tell to himself.
 
 My philosophys is always to "legacy here no" if something brokes, we can fix it up (also fix the things in specific version means that you keeping the security issues as well).
+
+[Here's the MR (#2) I created for this task](https://github.com/Messhias/go-router-performance-experiment/pull/2)
