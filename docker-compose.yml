@@ -24,3 +24,14 @@ services:
       LLAMA_ARG_PORT: "8080"
       LLAMA_ARG_MODEL: /models/qwen2.5-0.5b-instruct-q2_k.gguf
       LLAMA_ARG_CTX_SIZE: "8192"
+
+  router:
+    build: .
+    ports: 
+      - "8080:8080"
+    depends_on:
+      - llama-gemma
+      - llama-qwen
+    environment:
+      LLAMA_GEMMA_URL: "http://llama-gemma:8080"
+      LLAMA_QWEN_URL: "http://llama-qwen:8080"
