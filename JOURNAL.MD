@@ -38,3 +38,9 @@ curl -sS -X POST http://localhost:8081/v1/chat/completions \
 ```
 
 So I belive for today after my research and used the right tools I achieve to setup the Llama models.
+
+[Here's the MR (#1) I created for this task](https://github.com/Messhias/go-router-performance-experiment/pull/1)
+
+-----
+
+Moving on I decided to start the setup golang essentials (and it's packages)
