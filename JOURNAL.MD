@@ -51,3 +51,161 @@ One decision I took in relation of it, it is not use fixed versions of the image
 My philosophys is always to "legacy here no" if something brokes, we can fix it up (also fix the things in specific version means that you keeping the security issues as well).
 
 [Here's the MR (#2) I created for this task](https://github.com/Messhias/go-router-performance-experiment/pull/2)
+
+
+----
+
+### 16/04/2026
+
+Initial plan for BDD + TDD
+
+*Scenario 1* -> OpenAI compatible.
+*Scenario 2* -> Round robin algorithm.
+*Scenario 3* -> Proxy transparency.
+*Scenario 4* -> Stateless.
+*Scenario 5* -> Handle upstream failures.
+
+
+#### Pyramid tests
+
+TDD UNIT:
+- Upstream selection.
+- road robin algorithm.
+- request validation.
+
+TDD Component:
+- handler Gin 
+- httptest with mocked upstream (we won't use real external network for the sake of simplicity).
+
+#### BDD
+
+BDD acceptance with Godog (write the step definitions + feature files).
+
+----
+
+For now  I am thinkin in this folder structure to work with it:
+
+- internal/router (setup do Gin and routes)
+- internal/proxy (forward request/response)
+- internal/balancer (round-robin thread-safe)
+- internal/upstream (backend config for config/cliente)
+- features/ + *_test.go (BDD e TDD)
+
+#### My mental model for the contracts
+
+
+- Endpoint: POST /v1/chat/completions
+- Content-Type JSON
+- model body with messages
+- response with OpenAI-compatible
+- Load balance between the 2 instances.
+- The api needs to be stateless
+
+
+## My tasks backlog
+
+- TKT-001 — Test Bootstrap and Conventions
+
+
+Objective: Standardize test structure (unit/component/BDD) and execution commands.
+BDD (Red): Technical scenario “feature suite executes and reports failure correctly”.
+TDD: Create minimal sanity test (go test runs project).
+Ready when: There is a single command to run tests per layer and short documentation in the internal README.
+
+- TKT-002 — Gherkin Scenarios from the README (source of truth)
+
+Objective: Transform requirements into .feature files.
+BDD (Red): Create scenarios for OpenAI compatibility, round-robin, transparency, stateless, and upstream error.
+TDD: n/a (executable specification ticket).
+
+Ready when: All scenarios exist and fail due to lack of implementation (expected).
+
+- TKT-003 — Test doubles of OpenAI-compatible upstream
+
+Objective: Create two fake upstreams with httptest.Server.
+Partial BDD (Green): Steps can send requests and capture which upstream responded.
+TDD: Unit tests of the fakes (status, JSON body, upstream identification).
+
+Ready when: Upstreams A/B simulate /v1/chat/completions deterministically.
+
+- TKT-004 — Request parser/validator contract
+
+Objective: Validate the minimum structure of the OpenAI chat completions request.
+
+BDD (Red): Invalid payload scenario returns expected error.
+
+TDD: Unit tests for valid/invalid payload.
+
+Ready when: Validation covers main cases without coupling to the Gin handler.
+
+- TKT-005 — Round-robin thread-safe (core)
+
+Objective: A/B alternating selection component safe for concurrency.
+BDD (Red): Sequential request scenario alternates upstream.
+TDD: Unit tests for alternation and basic concurrency.
+
+Ready when: Algorithm passes deterministic tests and does not depend on per-client state.
+
+- TKT-006 — Gin handler for chat completions (minimum)
+
+Objective: Expose POST /v1/chat/completions.
+
+BDD (Red→Green): Basic success scenario.
+
+TDD: Component test with httptest.NewRecorder for status/body.
+
+Ready when: Endpoint responds with OpenAI-compatible JSON via fake upstream. 
+
+- TKT-007 — Transparent Proxy for Essential Body/Headers
+
+Objective: Preserve request/response with minimal transformation.
+BDD (Red): Transparency scenario validates important fields.
+TDD: Component tests for method forwarding, body, and critical headers (Content-Type, etc.).
+Ready when: Payload differences are only those necessary for routing.
+
+- TKT-008 — Upstream Fault Handling
+
+Objective: Define and implement error behavior.
+
+BDD (Red→Green): “upstream unavailable” scenario.
+
+TDD: Tests for timeout, 5xx, connection refused.
+
+Ready when: Error is consistent, observable, and does not crash the router.
+
+- TKT-009 — Guarantee of Stateless Behavior
+
+Objective: Prove absence of affinity/session in routing.
+
+BDD (Red→Green): Multiple clients globally alternate through the same RR.
+
+TDD: Component testing with different headers/client IDs without impacting selection.
+Ready when: No per-user state influences load balancing.
+
+- TKT-010 — Godog + Go Test Integration
+
+Objective: Run BDD alongside the standard Go suite.
+BDD: Execution of features within TestFeatures.
+
+TDD: "Wiring" test of the suite.
+
+Ready when: Go test executes unit/component/BDD in the same flow.
+
+- TKT-011 — Concurrency and Stability Testing
+
+
+Objective: Validate behavior under parallel light load.
+BDD: Optional tagged (@load-light) scenario for approximate distribution.
+
+TDD: Concurrent testing on the balancer/handler.
+
+Ready when: No race conditions and expected distribution between A/B.
+
+- TKT-012 — Real smoke with llama.cpp + acceptance checklist
+
+Objective: Validate end-to-end with the two real instances.
+BDD: Mark scenarios as “accepted” with evidence (summarized commands and outputs).
+
+TDD: n/a (real integration validation).
+
+Ready when: curl on the router works, round-robin observable, and compatible format.
