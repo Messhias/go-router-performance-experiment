@@ -19,7 +19,6 @@ func thenUpstreamAReceivedHeader() error { return godog.ErrPending }
 
 func InitProxyTransparency(ctx *godog.ScenarioContext) {
 
-	ctx.Step(`^router is available$`, givenRouterIsAvailable)
 	ctx.Step(`^upstream A is configured to echo the received request for chat completions$`, givenUpstreamAIsConfigured)
 	ctx.Step(`^I send a POST request to "/v1/chat/completions" with headers:$`, whenSendPostToRequest)
 	ctx.Step(`^body:$`, whenBody)

@@ -27,8 +27,6 @@ func thenShouldContainOpenAICompatible() error {
 }
 
 func InitOpenAIAcceptanceTests(ctx *godog.ScenarioContext) {
-
-	ctx.Step(`^router is available$`, givenRouterIsAvailable)
 	ctx.Step(`^upstream responds with an OpenAI-compatible chat completion$`, givenUpstreamResponds)
 	ctx.Step(`^send a POST request to "/v1/chat/completions" with body:$`, whenPostRequest)
 	ctx.Step(`^response status should be 200$`, thenResponseStatus200)
