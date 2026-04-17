@@ -104,7 +104,7 @@ For now  I am thinkin in this folder structure to work with it:
 
 ## My tasks backlog
 
-- TKT-001 — Test Bootstrap and Conventions
+- TKT-001 — Test Bootstrap and Conventions [DONE]
 
 
 Objective: Standardize test structure (unit/component/BDD) and execution commands.
@@ -112,7 +112,7 @@ BDD (Red): Technical scenario “feature suite executes and reports failure corr
 TDD: Create minimal sanity test (go test runs project).
 Ready when: There is a single command to run tests per layer and short documentation in the internal README.
 
-- TKT-002 — Gherkin Scenarios from the README (source of truth)
+- TKT-002 — Gherkin Scenarios from the README (source of truth) [DONE]
 
 Objective: Transform requirements into .feature files.
 BDD (Red): Create scenarios for OpenAI compatibility, round-robin, transparency, stateless, and upstream error.
