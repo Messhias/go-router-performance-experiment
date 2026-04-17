@@ -211,6 +211,9 @@ TDD: n/a (real integration validation).
 Ready when: curl on the router works, round-robin observable, and compatible format.
 
 
+
 ### 17/04/2026
 
 Start the work in the TKT-001 task
+
+MR: [TKT-001 — Test Bootstrap and Conventions [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/4)
