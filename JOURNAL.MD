@@ -104,7 +104,7 @@ For now  I am thinkin in this folder structure to work with it:
 
 ## My tasks backlog
 
-- TKT-001 — Test Bootstrap and Conventions
+- TKT-001 — Test Bootstrap and Conventions [DONE]
 
 
 Objective: Standardize test structure (unit/component/BDD) and execution commands.
@@ -214,3 +214,5 @@ Ready when: curl on the router works, round-robin observable, and compatible for
 ### 17/04/2026
 
 Start the work in the TKT-001 task
+
+MR: [TKT-001 — Test Bootstrap and Conventions [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/4)
