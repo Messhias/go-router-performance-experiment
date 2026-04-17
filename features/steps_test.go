@@ -9,4 +9,5 @@ import (
 func InitializeScenarios(ctx *godog.ScenarioContext) {
 	acceptance_tests.InitOpenAIAcceptanceTests(ctx)
 	acceptance_tests.InitRoundRobinLoadBalancing(ctx)
+	acceptance_tests.InitProxyTransparency(ctx)
 }
