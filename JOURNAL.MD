@@ -85,7 +85,7 @@ BDD acceptance with Godog (write the step definitions + feature files).
 
 For now  I am thinkin in this folder structure to work with it:
 
-- internal/router (setup do Gin and routes)
+- internal/router (setup of Gin and routes)
 - internal/proxy (forward request/response)
 - internal/balancer (round-robin thread-safe)
 - internal/upstream (backend config for config/cliente)
@@ -209,3 +209,8 @@ BDD: Mark scenarios as “accepted” with evidence (summarized commands and out
 TDD: n/a (real integration validation).
 
 Ready when: curl on the router works, round-robin observable, and compatible format.
+
+
+### 17/04/2026
+
+Start the work in the TKT-001 task
