@@ -9,7 +9,7 @@ import (
 func TestFeatures(t *testing.T) {
 	suite := godog.TestSuite{
 		Name:                "features",
-		ScenarioInitializer: InitializeScenario,
+		ScenarioInitializer: InitializeScenarios,
 		Options: &godog.Options{
 			Format:   "pretty",
 			Paths:    []string{"."},

@@ -1,25 +1,18 @@
 package features
 
 import (
-	"fmt"
-
 	"github.com/cucumber/godog"
+
+	"messhias/router-expirement/tests/acceptance_tests"
 )
 
-func theBDDSuiteIsConfigured() error {
-	return nil
-}
+func InitializeScenarios(ctx *godog.ScenarioContext) {
+	// init common steps
+	acceptance_tests.InitCommon(ctx)
 
-func iRunTheFeatureTests() error {
-	return nil
-}
-
-func iShouldSeeAFailingScenarioReport() error {
-	return fmt.Errorf("intentional failure: validating BDD failure reporting")
-}
-
-func InitializeScenario(ctx *godog.ScenarioContext) {
-	ctx.Step(`^the BDD suite is configured$`, theBDDSuiteIsConfigured)
-	ctx.Step(`^I run the feature tests$`, iRunTheFeatureTests)
-	ctx.Step(`^I should see a failing scenario report$`, iShouldSeeAFailingScenarioReport)
+	acceptance_tests.InitOpenAIAcceptanceTests(ctx)
+	acceptance_tests.InitRoundRobinLoadBalancing(ctx)
+	acceptance_tests.InitProxyTransparency(ctx)
+	acceptance_tests.InitStatelessRouting(ctx)
+	acceptance_tests.InitUpstreamFailures(ctx)
 }
