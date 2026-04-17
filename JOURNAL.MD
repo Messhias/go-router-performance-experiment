@@ -214,6 +214,7 @@ Ready when: curl on the router works, round-robin observable, and compatible for
 
 ### 17/04/2026
 
-Start the work in the TKT-001 task
+Start the work in the TKT-001/002 tasks
 
-MR: [TKT-001 — Test Bootstrap and Conventions [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/4)
+MR: [TKT-001 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/4)
+MR: [TKT-002 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/5)
