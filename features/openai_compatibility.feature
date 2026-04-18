@@ -1,8 +1,10 @@
 Feature: OpenAI-compatible chat completions
 
-  Scenario: Successful chat completion with minimal valid payload
+  Background:
     Given router is available
-    And upstream responds with an OpenAI-compatible chat completion
+
+  Scenario: Successful chat completion with minimal valid payload
+    Given upstream responds with an OpenAI-compatible chat completion
     When send a POST request to "/v1/chat/completions" with body:
       """
       {
@@ -13,3 +15,13 @@ Feature: OpenAI-compatible chat completions
     Then response status should be 200
     And response should be valid JSON
     And response should contain an OpenAI-compatible chat completion shape
+
+  Scenario: Invalid chat completion payload returns a client error
+    When send a POST request to "/v1/chat/completions" with body:
+      """
+      {
+        "model": "",
+        "messages": []
+      }
+      """
+    Then response status should be 400
