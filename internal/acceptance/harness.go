@@ -19,6 +19,7 @@ type chatAcceptanceHarness struct {
 }
 
 func NewHarness(t *testing.T) ChatAcceptanceHarness {
+	t.Helper()
 	return &chatAcceptanceHarness{
 		t: t,
 	}
