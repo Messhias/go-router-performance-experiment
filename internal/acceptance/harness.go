@@ -1,6 +1,11 @@
 package acceptance
 
-import "errors"
+import (
+	"errors"
+	"messhias/router-expirement/internal/upstreamfake"
+	"net/http/httptest"
+	"testing"
+)
 
 type ChatAcceptanceHarness interface {
 	EnsureTwoChatUpstreams() error
@@ -8,20 +13,32 @@ type ChatAcceptanceHarness interface {
 }
 
 type chatAcceptanceHarness struct {
-	// TODO: Add fields when you wire servers, e.g.:
-	// TODO: upstreamA *httptest.Server
-	// TODO: upstreamB *httptest.Server
+	t         *testing.T
+	upstreamA *httptest.Server
+	upstreamB *httptest.Server
 }
 
-func NewHarness() ChatAcceptanceHarness {
-	return &chatAcceptanceHarness{}
+func NewHarness(t *testing.T) ChatAcceptanceHarness {
+	return &chatAcceptanceHarness{
+		t: t,
+	}
 }
 
 func (h *chatAcceptanceHarness) EnsureTwoChatUpstreams() error {
-	return errors.New("not implemented")
+	if h.upstreamA != nil {
+		return errors.New("upstream server already set")
+	}
+
+	h.upstreamA = upstreamfake.NewChatCompletionServerMock(h.t, "upstream-a")
+	h.upstreamB = upstreamfake.NewChatCompletionServerMock(h.t, "upstream-b")
+
+	return nil
 }
 
 func (h *chatAcceptanceHarness) Close() error {
-	// TODO: Close upstreamA/upstreamB when they exist; return joined errors if you want strict cleanup reporting.
+	// we do not call Close() here because in the completion serve we already call the close
+	h.upstreamA = nil
+	h.upstreamB = nil
+
 	return nil
 }
