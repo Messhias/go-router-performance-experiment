@@ -11,7 +11,6 @@ type RoundRobin interface {
 
 type roundRobin struct {
 	next    int
-	current string
 	targets []string
 	mu      sync.Mutex
 }
