@@ -3,6 +3,7 @@ package acceptance_tests
 import (
 	"context"
 	"messhias/router-expirement/internal/acceptance"
+	"messhias/router-expirement/internal/balancer"
 	"testing"
 
 	"github.com/cucumber/godog"
@@ -10,7 +11,38 @@ import (
 
 func givenUpstreamAAndUpstreamB(harness acceptance.ChatAcceptanceHarness) func() error {
 	return func() error {
-		return harness.EnsureTwoChatUpstreams()
+		err := harness.EnsureTwoChatUpstreams()
+
+		if err != nil {
+			return err
+		}
+
+		a, err := harness.UpstreamAURL()
+
+		if err != nil {
+			return err
+		}
+
+		b, err := harness.UpstreamBURL()
+
+		if err != nil {
+			return err
+		}
+
+		roundRobinState.mu.Lock()
+		defer roundRobinState.mu.Unlock()
+
+		roundRobinState.upstreamAURL = a
+		roundRobinState.upstreamBURL = b
+		newBalancer, err := balancer.NewBalancer([]string{roundRobinState.upstreamAURL, roundRobinState.upstreamBURL})
+
+		if err != nil {
+			return err
+		}
+
+		roundRobinState.bal = newBalancer
+
+		return nil
 	}
 }
 

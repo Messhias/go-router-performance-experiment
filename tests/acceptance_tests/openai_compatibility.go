@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"strings"
 
 	"github.com/cucumber/godog"
 )
@@ -98,9 +99,69 @@ func serverHandler() http.HandlerFunc {
 			return
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte(`{}`))
+		roundRobinState.mu.Lock()
+		bal := roundRobinState.bal
+		urlA := roundRobinState.upstreamAURL
+		urlB := roundRobinState.upstreamBURL
+		roundRobinState.mu.Unlock()
+
+		if bal == nil {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(`{}`))
+			return
+		}
+
+		target, err := bal.Next()
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		upURL := strings.TrimRight(target, "/") + "/v1/chat/completions"
+
+		req, err := http.NewRequestWithContext(r.Context(), http.MethodPost, upURL, bytes.NewReader(body))
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if ct := r.Header.Get("Content-Type"); ct != "" {
+			req.Header.Set("Content-Type", ct)
+		} else {
+			req.Header.Set("Content-Type", "application/json")
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+			return
+		}
+		defer func() {
+			_ = resp.Body.Close()
+		}()
+
+		upBody, err := io.ReadAll(resp.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+			return
+		}
+
+		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
+			t := strings.TrimRight(target, "/")
+			switch t {
+			case strings.TrimRight(urlA, "/"):
+				appendRoundRobinHandlingLetter("A")
+			case strings.TrimRight(urlB, "/"):
+				appendRoundRobinHandlingLetter("B")
+			}
+		}
+
+		if ct := resp.Header.Get("Content-Type"); ct != "" {
+			w.Header().Set("Content-Type", ct)
+		}
+		w.WriteHeader(resp.StatusCode)
+		_, _ = w.Write(upBody)
 	}
 }
 

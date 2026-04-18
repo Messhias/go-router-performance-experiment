@@ -9,6 +9,8 @@ import (
 
 type ChatAcceptanceHarness interface {
 	EnsureTwoChatUpstreams() error
+	UpstreamAURL() (string, error)
+	UpstreamBURL() (string, error)
 	Close() error
 }
 
@@ -18,11 +20,19 @@ type chatAcceptanceHarness struct {
 	upstreamB *httptest.Server
 }
 
-func NewHarness(t *testing.T) ChatAcceptanceHarness {
-	t.Helper()
-	return &chatAcceptanceHarness{
-		t: t,
+func (h *chatAcceptanceHarness) UpstreamAURL() (string, error) {
+	if h.upstreamA == nil {
+		return "", errors.New("no upstream A")
 	}
+
+	return h.upstreamA.URL, nil
+}
+
+func (h *chatAcceptanceHarness) UpstreamBURL() (string, error) {
+	if h.upstreamB == nil {
+		return "", errors.New("no upstream B")
+	}
+	return h.upstreamB.URL, nil
 }
 
 func (h *chatAcceptanceHarness) EnsureTwoChatUpstreams() error {
@@ -42,4 +52,11 @@ func (h *chatAcceptanceHarness) Close() error {
 	h.upstreamB = nil
 
 	return nil
+}
+
+func NewHarness(t *testing.T) ChatAcceptanceHarness {
+	t.Helper()
+	return &chatAcceptanceHarness{
+		t: t,
+	}
 }
