@@ -1,11 +1,13 @@
 package Dto
 
+type Message struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
 type ChatRequestDto struct {
-	Model    string `json:"model"`
-	Messages []struct {
-		Role    string `json:"role"`
-		Content string `json:"content"`
-	} `json:"messages"`
+	Model    string    `json:"model"`
+	Messages []Message `json:"messages"`
 }
 
 type ChatResponseDto struct {
@@ -26,7 +28,7 @@ type ChoiceDto struct {
 type ChatCompletionResponseDto struct {
 	ID      string      `json:"id"`
 	Object  string      `json:"object"`
-	Created int64       `json:"created"`
 	Model   string      `json:"model"`
+	Created int64       `json:"created"`
 	Choices []ChoiceDto `json:"choices"`
 }

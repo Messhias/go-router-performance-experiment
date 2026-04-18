@@ -43,11 +43,8 @@ func TestWrongMethodInWrongUrl_ShouldFail(t *testing.T) {
 func runUpStreamTest(t *testing.T, label string) {
 	srv := NewChatCompletionServerMock(t, label)
 	body, err := json.Marshal(Dto.ChatRequestDto{
-		Model: "auto",
-		Messages: []struct {
-			Role    string `json:"role"`
-			Content string `json:"content"`
-		}{{Role: "user", Content: "Hello"}},
+		Model:    "auto",
+		Messages: []Dto.Message{{Role: "user", Content: "Hello"}},
 	})
 
 	if err != nil {
