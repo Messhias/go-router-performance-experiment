@@ -11,7 +11,7 @@ func TestInvalidBalancerCreation_ShouldFail(t *testing.T) {
 }
 
 func TestBalancerAlternates_ShouldPass(t *testing.T) {
-	balancers := []string{"A", "B"}
+	balancers := []string{"upstream-a ", "upstream-a "}
 	balancer, err := NewBalancer(balancers)
 
 	if err != nil {

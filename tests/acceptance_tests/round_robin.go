@@ -1,15 +1,40 @@
 package acceptance_tests
 
 import (
-	"messhias/router-expirement/internal/acceptance"
+	"context"
+	"messhias/router-expirement/internal/balancer"
+	"sync"
 
 	"github.com/cucumber/godog"
 )
 
-func givenUpstreamAAndUpstreamB(harness acceptance.ChatAcceptanceHarness) func() error {
-	return func() error {
-		return harness.EnsureTwoChatUpstreams()
-	}
+var roundRobinState struct {
+	mu sync.Mutex
+
+	upstreamAURL string
+	upstreamBURL string
+
+	handlingOrder []string
+
+	bal balancer.RoundRobin
+}
+
+func resetRoundRobin() {
+	roundRobinState.mu.Lock()
+	defer roundRobinState.mu.Unlock()
+
+	roundRobinState.upstreamAURL = ""
+	roundRobinState.upstreamBURL = ""
+
+	roundRobinState.bal = nil
+	roundRobinState.handlingOrder = nil
+}
+
+func appendRoundRobinHandlingLetter(letter string) {
+	roundRobinState.mu.Lock()
+	defer roundRobinState.mu.Unlock()
+
+	roundRobinState.handlingOrder = append(roundRobinState.handlingOrder, letter)
 }
 
 func whenISend4SequentialPost() error {
@@ -21,6 +46,12 @@ func thenUpstreamHandlingOrderShouldBe() error {
 }
 
 func InitRoundRobinLoadBalancing(ctx *godog.ScenarioContext) {
+
+	ctx.Before(func(ctx context.Context, _ *godog.Scenario) (context.Context, error) {
+		resetRoundRobin()
+		return ctx, nil
+	})
+
 	ctx.Step(`^I send 4 sequential POST requests to "/v1/chat/completions" with body:$`, whenISend4SequentialPost)
 	ctx.Step(`^upstream handling order should be "A,B,A,B"$`, thenUpstreamHandlingOrderShouldBe)
 }

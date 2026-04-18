@@ -8,6 +8,12 @@ import (
 	"github.com/cucumber/godog"
 )
 
+func givenUpstreamAAndUpstreamB(harness acceptance.ChatAcceptanceHarness) func() error {
+	return func() error {
+		return harness.EnsureTwoChatUpstreams()
+	}
+}
+
 func InitCommon(ctx *godog.ScenarioContext, t *testing.T) {
 	harness := acceptance.NewHarness(t)
 
