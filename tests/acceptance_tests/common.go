@@ -1,9 +1,21 @@
 package acceptance_tests
 
-import "github.com/cucumber/godog"
+import (
+	"context"
+	"messhias/router-expirement/internal/acceptance"
+	"testing"
 
-func InitCommon(ctx *godog.ScenarioContext) {
+	"github.com/cucumber/godog"
+)
+
+func InitCommon(ctx *godog.ScenarioContext, t *testing.T) {
+	harness := acceptance.NewHarness(t)
 
 	ctx.Step(`^router is available$`, givenRouterIsAvailable)
-	ctx.Step(`^upstream A and upstream B are configured for chat completions$`, givenUpstreamAAndUpstreamB)
+	ctx.Step(`^upstream A and upstream B are configured for chat completions$`, givenUpstreamAAndUpstreamB(harness))
+
+	ctx.After(func(ctx context.Context, _ *godog.Scenario, _ error) (context.Context, error) {
+		_ = harness.Close()
+		return ctx, nil
+	})
 }

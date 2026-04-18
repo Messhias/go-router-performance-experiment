@@ -1,9 +1,15 @@
 package acceptance_tests
 
-import "github.com/cucumber/godog"
+import (
+	"messhias/router-expirement/internal/acceptance"
 
-func givenUpstreamAAndUpstreamB() error {
-	return godog.ErrPending
+	"github.com/cucumber/godog"
+)
+
+func givenUpstreamAAndUpstreamB(harness acceptance.ChatAcceptanceHarness) func() error {
+	return func() error {
+		return harness.EnsureTwoChatUpstreams()
+	}
 }
 
 func whenISend4SequentialPost() error {

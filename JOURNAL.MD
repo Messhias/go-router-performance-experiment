@@ -218,3 +218,8 @@ Start the work in the TKT-001/002 tasks
 
 MR: [TKT-001 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/4)
 MR: [TKT-002 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/5)
+
+
+### 18/04/2026
+
+MR: [TKT-003 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/6)
