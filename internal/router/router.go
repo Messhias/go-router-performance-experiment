@@ -5,13 +5,14 @@ import (
 	"io"
 	Dto "messhias/router-expirement/internal/DTO"
 	"messhias/router-expirement/internal/balancer"
+	"messhias/router-expirement/internal/proxy"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
 )
 
-func registerChatRoutes(engine *gin.Engine, robin balancer.RoundRobin) {
+func registerChatRoutes(engine *gin.Engine, robin balancer.RoundRobin, hooks *proxy.Hooks) {
 	engine.POST("/v1/chat/completions", func(c *gin.Context) {
 		body, err := io.ReadAll(c.Request.Body)
 
@@ -29,16 +30,14 @@ func registerChatRoutes(engine *gin.Engine, robin balancer.RoundRobin) {
 		}
 
 		target, err := robin.Next()
-
 		if err != nil {
 			c.String(http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		upstreamUrl := strings.TrimRight(target, "/") + "/v1/chat/completions"
+		upstreamURL := strings.TrimRight(target, "/") + "/v1/chat/completions"
 
-		req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodPost, upstreamUrl, bytes.NewReader(body))
-
+		req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodPost, upstreamURL, bytes.NewReader(body))
 		if err != nil {
 			c.String(http.StatusInternalServerError, err.Error())
 			return
@@ -51,23 +50,23 @@ func registerChatRoutes(engine *gin.Engine, robin balancer.RoundRobin) {
 		}
 
 		resp, err := http.DefaultClient.Do(req)
-
 		if err != nil {
 			c.String(http.StatusBadGateway, err.Error())
 			return
 		}
-
 		defer func() { _ = resp.Body.Close() }()
 
 		upBody, err := io.ReadAll(resp.Body)
-
 		if err != nil {
 			c.String(http.StatusBadGateway, err.Error())
 			return
 		}
 
-		contentType := resp.Header.Get("Content-Type")
+		if hooks != nil && hooks.OnUpstream2xx != nil && resp.StatusCode >= 200 && resp.StatusCode < 300 {
+			hooks.OnUpstream2xx(strings.TrimRight(target, "/"))
+		}
 
+		contentType := resp.Header.Get("Content-Type")
 		if contentType == "" {
 			contentType = "application/octet-stream"
 		}
@@ -76,10 +75,8 @@ func registerChatRoutes(engine *gin.Engine, robin balancer.RoundRobin) {
 	})
 }
 
-func NewEngine(balancer balancer.RoundRobin) *gin.Engine {
+func NewEngine(bal balancer.RoundRobin, hooks *proxy.Hooks) *gin.Engine {
 	engine := gin.New()
-
-	registerChatRoutes(engine, balancer)
-
+	registerChatRoutes(engine, bal, hooks)
 	return engine
 }

@@ -28,7 +28,7 @@ func TestPOSTChatCompletions_proxiesToUpstream_openAICompatibleJSON_ShouldPass(t
 		t.Fatalf("error creating balancer: %v", err)
 	}
 
-	engine := NewEngine(bal)
+	engine := NewEngine(bal, nil)
 	body := []byte(`{
 		"model": "auto",
 		"messages": [{"role": "user", "content": "Hello"}]

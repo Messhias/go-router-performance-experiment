@@ -23,7 +23,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	engine := router.NewEngine(bal)
+	engine := router.NewEngine(bal, nil)
 
 	serverAddress := os.Getenv("SERVER_ADDR")
 
