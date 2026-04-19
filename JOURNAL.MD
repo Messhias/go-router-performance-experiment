@@ -19,7 +19,7 @@ I downloaded [this .gguf](https://huggingface.co/ggml-org/gemma-3-1b-it-GGUF?sho
 
 I decided to `LLAMA_ARG_CTX_SIZE` to `4096` to have a not a lower larger context window and not to shorter, so with `4096` I believe we can achieve a nice value.
 
-After setup the the [docker-compose.yml](docker-cmopose.yml) file and test a curl by terminal I got the answers from model:
+After setup the the [docker-compose.yml](https://github.com/Messhias/go-router-performance-experiment/blob/main/docker-compose.yml) file and test a curl by terminal I got the answers from model:
 
 Qwen:
 ```
@@ -227,3 +227,5 @@ MR: [TKT-004 [DONE]](https://github.com/Messhias/go-router-performance-experimen
 MR: [TKT-005 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/8)
 
 ### 19/04/2026
+
+MR: [TKT-006 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/9)
