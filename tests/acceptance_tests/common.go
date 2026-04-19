@@ -51,6 +51,7 @@ func InitCommon(ctx *godog.ScenarioContext, t *testing.T) {
 
 	ctx.Step(`^router is available$`, givenRouterIsAvailable)
 	ctx.Step(`^upstream A and upstream B are configured for chat completions$`, givenUpstreamAAndUpstreamB(harness))
+	ctx.Step(`^upstream responds with an OpenAI-compatible chat completion$`, givenUpstreamAAndUpstreamB(harness))
 
 	ctx.After(func(ctx context.Context, _ *godog.Scenario, _ error) (context.Context, error) {
 		_ = harness.Close()

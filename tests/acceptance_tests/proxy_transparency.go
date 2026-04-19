@@ -1,6 +1,12 @@
 package acceptance_tests
 
-import "github.com/cucumber/godog"
+import (
+	"encoding/json"
+	"errors"
+	Dto "messhias/router-expirement/internal/DTO"
+
+	"github.com/cucumber/godog"
+)
 
 func givenUpstreamAIsConfigured() error {
 	return godog.ErrPending
@@ -14,7 +20,19 @@ func whenBody() error {
 	return godog.ErrPending
 }
 
-func thenUpstreamAReceivedJson() error   { return godog.ErrPending }
+func thenUpstreamAReceivedJson() error {
+	if len(routerTest.body) == 0 {
+		return errors.New("body is empty")
+	}
+	var response Dto.ChatResponseDto
+	err := json.Unmarshal(routerTest.body, &response)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 func thenUpstreamAReceivedHeader() error { return godog.ErrPending }
 
 func InitProxyTransparency(ctx *godog.ScenarioContext) {
