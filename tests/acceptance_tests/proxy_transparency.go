@@ -21,17 +21,23 @@ func whenBody() error {
 }
 
 func thenUpstreamAReceivedJson() error {
+	_, err := extractChatResponseAndValidate()
+
+	return err
+}
+
+func extractChatResponseAndValidate() (*Dto.ChatCompletionResponseDto, error) {
 	if len(routerTest.body) == 0 {
-		return errors.New("body is empty")
+		return nil, errors.New("body is empty")
 	}
-	var response Dto.ChatResponseDto
+	var response Dto.ChatCompletionResponseDto
 	err := json.Unmarshal(routerTest.body, &response)
 
 	if err != nil {
-		return err
+		return &response, err
 	}
 
-	return nil
+	return &response, nil
 }
 func thenUpstreamAReceivedHeader() error { return godog.ErrPending }
 

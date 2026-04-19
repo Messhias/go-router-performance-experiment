@@ -73,11 +73,31 @@ func thenResponseStatus400() error {
 }
 
 func thenShouldValidJson() error {
-	return godog.ErrPending
+	_, err := extractChatResponseAndValidate()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func thenShouldContainOpenAICompatible() error {
-	return godog.ErrPending
+	chatResponse, err := extractChatResponseAndValidate()
+
+	if err != nil {
+		return err
+	}
+
+	if chatResponse.Object != "chat.completion" {
+		return errors.New("expected object to be 'chat.completion'")
+	}
+
+	if len(chatResponse.Choices) == 0 {
+		return errors.New("expected choices to contain at least one choice")
+	}
+
+	return nil
 }
 
 func serverHandler() http.HandlerFunc {
