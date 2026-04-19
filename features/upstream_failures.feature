@@ -11,6 +11,6 @@ Feature: Upstream failure handling
         "messages": [{"role": "user", "content": "hello"}]
       }
       """
-    Then the response status should be 502
-    And the response should be valid JSON
-    And the response body should describe an upstream error
+    Then response status should be 502
+    And response should be valid JSON
+    And response body should describe an upstream error

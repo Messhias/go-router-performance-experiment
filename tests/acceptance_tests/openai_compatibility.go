@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	Dto "messhias/router-expirement/internal/DTO"
+	"messhias/router-expirement/internal/proxy"
+	"messhias/router-expirement/internal/router"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -20,18 +21,28 @@ var routerTest struct {
 }
 
 func givenRouterIsAvailable() error {
-
 	if routerTest.srv != nil {
 		routerTest.srv.Close()
 	}
 
-	routerTest.srv = httptest.NewServer(serverHandler())
+	hooks := &proxy.Hooks{
+		OnUpstream2xx: func(chosen string) {
+			roundRobinState.mu.Lock()
+			a := strings.TrimRight(roundRobinState.upstreamAURL, "/")
+			b := strings.TrimRight(roundRobinState.upstreamBURL, "/")
+			roundRobinState.mu.Unlock()
 
+			switch strings.TrimRight(chosen, "/") {
+			case a:
+				appendRoundRobinHandlingLetter("A")
+			case b:
+				appendRoundRobinHandlingLetter("B")
+			}
+		},
+	}
+
+	routerTest.srv = httptest.NewServer(router.NewEngine(&delegatingBalancer{}, hooks))
 	return nil
-}
-
-func givenUpstreamResponds() error {
-	return godog.ErrPending
 }
 
 func whenPostRequest(doc *godog.DocString) error {
@@ -51,6 +62,11 @@ func whenPostRequest(doc *godog.DocString) error {
 	}(resp.Body)
 
 	routerTest.status = resp.StatusCode
+	routerTest.body, err = io.ReadAll(resp.Body)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -72,101 +88,34 @@ func thenResponseStatus400() error {
 }
 
 func thenShouldValidJson() error {
-	return godog.ErrPending
+	_, err := extractChatResponseAndValidate()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func thenShouldContainOpenAICompatible() error {
-	return godog.ErrPending
-}
+	chatResponse, err := extractChatResponseAndValidate()
 
-func serverHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost || r.URL.Path != "/v1/chat/completions" {
-			http.Error(w, "not found", http.StatusNotFound)
-			return
-		}
-
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, "read body", http.StatusInternalServerError)
-			return
-		}
-
-		if _, err := Dto.ParseAndValidateChatRequest(body); err != nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			_, _ = w.Write([]byte(`{"error":"invalid request"}`))
-			return
-		}
-
-		roundRobinState.mu.Lock()
-		bal := roundRobinState.bal
-		urlA := roundRobinState.upstreamAURL
-		urlB := roundRobinState.upstreamBURL
-		roundRobinState.mu.Unlock()
-
-		if bal == nil {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			_, _ = w.Write([]byte(`{}`))
-			return
-		}
-
-		target, err := bal.Next()
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		upURL := strings.TrimRight(target, "/") + "/v1/chat/completions"
-
-		req, err := http.NewRequestWithContext(r.Context(), http.MethodPost, upURL, bytes.NewReader(body))
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if ct := r.Header.Get("Content-Type"); ct != "" {
-			req.Header.Set("Content-Type", ct)
-		} else {
-			req.Header.Set("Content-Type", "application/json")
-		}
-
-		resp, err := http.DefaultClient.Do(req)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadGateway)
-			return
-		}
-		defer func() {
-			_ = resp.Body.Close()
-		}()
-
-		upBody, err := io.ReadAll(resp.Body)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadGateway)
-			return
-		}
-
-		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-			t := strings.TrimRight(target, "/")
-			switch t {
-			case strings.TrimRight(urlA, "/"):
-				appendRoundRobinHandlingLetter("A")
-			case strings.TrimRight(urlB, "/"):
-				appendRoundRobinHandlingLetter("B")
-			}
-		}
-
-		if ct := resp.Header.Get("Content-Type"); ct != "" {
-			w.Header().Set("Content-Type", ct)
-		}
-		w.WriteHeader(resp.StatusCode)
-		_, _ = w.Write(upBody)
+	if err != nil {
+		return err
 	}
+
+	if chatResponse.Object != "chat.completion" {
+		return errors.New("expected object to be 'chat.completion'")
+	}
+
+	if len(chatResponse.Choices) == 0 {
+		return errors.New("expected choices to contain at least one choice")
+	}
+
+	return nil
 }
 
 func InitOpenAIAcceptanceTests(ctx *godog.ScenarioContext) {
-	ctx.Step(`^upstream responds with an OpenAI-compatible chat completion$`, givenUpstreamResponds)
 	ctx.Step(`^send a POST request to "/v1/chat/completions" with body:$`, whenPostRequest)
 	ctx.Step(`^response status should be 200$`, thenResponseStatus200)
 	ctx.Step(`^response status should be 400$`, thenResponseStatus400)
