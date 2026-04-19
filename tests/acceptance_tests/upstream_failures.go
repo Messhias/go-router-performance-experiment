@@ -21,7 +21,7 @@ func thenResponseBodyDescribesUpstreamError() error {
 
 func InitUpstreamFailures(ctx *godog.ScenarioContext) {
 	ctx.Step(`^upstream A is failing chat completions with status 503$`, givenUpstreamAFailingChatCompletions503)
-	ctx.Step(`^reponse status should be (\d+)$`, thenTheResponseStatusShouldBe)
-	ctx.Step(`^reponse should be valid JSON$`, thenTheResponseShouldBeValidJSON)
-	ctx.Step(`^reponse body should describe an upstream error$`, thenResponseBodyDescribesUpstreamError)
+	ctx.Step(`^response status should be (\d+)$`, thenTheResponseStatusShouldBe)
+	ctx.Step(`^response should be valid JSON$`, thenTheResponseShouldBeValidJSON)
+	ctx.Step(`^response body should describe an upstream error$`, thenResponseBodyDescribesUpstreamError)
 }
