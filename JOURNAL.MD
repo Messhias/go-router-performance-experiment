@@ -195,7 +195,7 @@ Ready when: Go test executes unit/component/BDD in the same flow.
 
 
 Objective: Validate behavior under parallel light load.
-BDD: Optional tagged (@load-light) scenario for approximate distribution.
+BDD: tagged (@load-light) scenario for approximate distribution.
 
 TDD: Concurrent testing on the balancer/handler.
 
@@ -229,3 +229,4 @@ MR: [TKT-005 [DONE]](https://github.com/Messhias/go-router-performance-experimen
 ### 19/04/2026
 
 MR: [TKT-006 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/9)
+MR: [TKT-007 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/10)
