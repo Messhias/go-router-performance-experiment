@@ -17,4 +17,5 @@ func InitializeScenarios(ctx *godog.ScenarioContext, t *testing.T) {
 	acceptance_tests.InitProxyTransparency(ctx)
 	acceptance_tests.InitStatelessRouting(ctx)
 	acceptance_tests.InitUpstreamFailures(ctx)
+	acceptance_tests.InitConcurrencyLoad(ctx)
 }
