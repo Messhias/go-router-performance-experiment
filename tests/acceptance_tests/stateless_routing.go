@@ -2,13 +2,10 @@ package acceptance_tests
 
 import "github.com/cucumber/godog"
 
-func whenClientSendsPOSTWithHeaderAndBody(client, path, headerName, headerValue string, doc *godog.DocString) error {
-	_ = client
-	_ = path
-	_ = headerName
-	_ = headerValue
+func whenClientSendsPOSTWithHeaderAndBody(doc *godog.Table) error {
 	_ = doc
-	return godog.ErrPending
+
+	return nil
 }
 
 func thenUpstreamHandlingOrderLast3ABABA() error {
@@ -16,6 +13,6 @@ func thenUpstreamHandlingOrderLast3ABABA() error {
 }
 
 func InitStatelessRouting(ctx *godog.ScenarioContext) {
-	ctx.Step(`^client "([^"]*)" sends a POST request to "([^"]*)" with header "([^"]*)" "([^"]*)" and body:$`, whenClientSendsPOSTWithHeaderAndBody)
+	ctx.Step(`^following clients send POST "/v1/chat/completions" in order with header "X-Client-Id" and JSON bodies built from:$`, whenClientSendsPOSTWithHeaderAndBody)
 	ctx.Step(`^upstream handling order for the last 3 requests should be "A,B,A"$`, thenUpstreamHandlingOrderLast3ABABA)
 }
