@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -169,5 +170,54 @@ func TestPOSTChatCompletions_upstreamReceivesSameBodyAndContentType_ShouldPass(t
 	}
 	if gotCT != "application/json; charset=utf-8" {
 		t.Fatalf("upstream Content-Type = %q, want application/json; charset=utf-8", gotCT)
+	}
+}
+
+func TestTimeout_ShouldPass(t *testing.T) {
+
+	prev := upstreamRequestTimeout
+	upstreamRequestTimeout = 20 * time.Millisecond
+
+	t.Cleanup(func() {
+		upstreamRequestTimeout = prev
+	})
+
+	slowUpstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(100 * time.Millisecond)
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{ok : "true"}`))
+	}))
+	t.Cleanup(slowUpstream.Close)
+
+	bal, err := balancer.NewBalancer([]string{slowUpstream.URL})
+
+	if err != nil {
+		t.Fatalf("balancer: %v", err)
+	}
+
+	engine := NewEngine(bal, nil)
+
+	body := []byte(`{
+		"model":"auto",
+		"messages":[{"role":"user","content":"hello"}]
+	}`)
+
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+
+	engine.ServeHTTP(w, req)
+
+	if w.Code != http.StatusBadGateway {
+		t.Fatalf("status = %d, want %d. body=%s", w.Code, http.StatusBadGateway, w.Body.String())
+	}
+
+	var got map[string]string
+	if err := json.Unmarshal(w.Body.Bytes(), &got); err != nil {
+		t.Fatalf("unmarshal: %v", err)
+	}
+
+	if got["error"] != "upstream timeout" {
+		t.Fatalf("upstream timeout = %q, want %q", got["error"], "upstream timeout")
 	}
 }
