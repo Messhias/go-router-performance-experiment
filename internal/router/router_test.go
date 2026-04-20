@@ -3,6 +3,7 @@ package router
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	Dto "messhias/router-expirement/internal/DTO"
 	"messhias/router-expirement/internal/balancer"
@@ -10,6 +11,8 @@ import (
 	"messhias/router-expirement/internal/upstreamfake"
 	"net/http"
 	"net/http/httptest"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -220,5 +223,85 @@ func TestTimeout_ShouldPass(t *testing.T) {
 
 	if got["error"] != "upstream timeout" {
 		t.Fatalf("upstream timeout = %q, want %q", got["error"], "upstream timeout")
+	}
+}
+
+func TestPOSTChatCompletions_concurrentRoundRobin_balancedDistribution_ShouldPass(t *testing.T) {
+	urlA := upstreamfake.NewChatCompletionServerMock(t, "upstream-a")
+	urlB := upstreamfake.NewChatCompletionServerMock(t, "upstream-b")
+
+	bal, err := balancer.NewBalancer([]string{urlA.URL, urlB.URL})
+	if err != nil {
+		t.Fatalf("balancer: %v", err)
+	}
+
+	engine := NewEngine(bal, nil)
+	body := []byte(`{"model":"auto","messages":[{"role":"user","content":"x"}]}`)
+
+	const total = 256
+	var wg sync.WaitGroup
+	var countA, countB atomic.Int64
+	var errMu sync.Mutex
+	var firstErr error
+
+	fail := func(format string, args ...any) {
+		errMu.Lock()
+		if firstErr == nil {
+			firstErr = fmt.Errorf(format, args...)
+		}
+		errMu.Unlock()
+	}
+
+	for i := 0; i < total; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest(http.MethodPost, config.ChatCompletionsUrl, bytes.NewReader(body))
+			req.Header.Set("Content-Type", "application/json")
+			engine.ServeHTTP(w, req)
+			if w.Code != http.StatusOK {
+				fail("status %d body %s", w.Code, w.Body.String())
+				return
+			}
+			var parsed Dto.ChatCompletionResponseDto
+			if err := json.Unmarshal(w.Body.Bytes(), &parsed); err != nil {
+				fail("unmarshal: %v", err)
+				return
+			}
+			switch parsed.Model {
+			case "upstream-a":
+				countA.Add(1)
+			case "upstream-b":
+				countB.Add(1)
+			default:
+				fail("unexpected model %q", parsed.Model)
+			}
+		}()
+	}
+	wg.Wait()
+
+	errMu.Lock()
+	e := firstErr
+	errMu.Unlock()
+
+	if e != nil {
+		t.Fatal(e)
+	}
+
+	a := countA.Load()
+	b := countB.Load()
+
+	if a+b != total {
+		t.Fatalf("count sum %d, want %d", a+b, total)
+	}
+
+	d := a - b
+
+	if d < 0 {
+		d = -d
+	}
+	if d > 1 {
+		t.Fatalf("imbalance under concurrency: A=%d B=%d (want |A-B| <= 1)", a, b)
 	}
 }
