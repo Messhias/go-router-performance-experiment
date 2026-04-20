@@ -217,21 +217,212 @@ Ready when: curl on the router works, round-robin observable, and compatible for
 Start the work in the TKT-001/002 tasks
 
 MR: [TKT-001 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/4)
+
 MR: [TKT-002 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/5)
 
 
 ### 18/04/2026
 
 MR: [TKT-003 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/6)
+
 MR: [TKT-004 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/7)
+
 MR: [TKT-005 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/8)
 
 ### 19/04/2026
 
 MR: [TKT-006 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/9)
+
 MR: [TKT-007 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/10)
 
 ### 20/04/2026
 
 MR: [TKT-008 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/11)
+
 MR: [TKT-009 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/12)
+
+MR: [TKT-010 [DONE]](https://github.com/Messhias/go-router-performance-experiment/pull/12)
+
+Evidence: 
+```
+go test ./... -v -race
+?   	messhias/router-expirement	[no test files]
+=== RUN   TestFeatures
+Feature: OpenAI-compatible chat completions
+=== RUN   TestFeatures/Successful_chat_completion_with_minimal_valid_payload
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /v1/chat/completions      --> messhias/router-expirement/internal/router.registerChatRoutes.func1 (1 handlers)
+
+  Background:
+    Given router is available                                              # common.go:52 -> messhias/router-expirement/tests/acceptance_tests.givenRouterIsAvailable
+
+  Scenario: Successful chat completion with minimal valid payload          # openai_compatibility.feature:6
+    Given upstream responds with an OpenAI-compatible chat completion      # common.go:54 -> messhias/router-expirement/tests/acceptance_tests.InitCommon.givenUpstreamAAndUpstreamB.func3
+    When send a POST request to "/v1/chat/completions" with body:          # openai_compatibility.go:120 -> messhias/router-expirement/tests/acceptance_tests.whenPostRequest
+      """
+      {
+        "model": "auto",
+        "messages": [{"role": "user", "content": "Hello"}]
+      }
+      """
+    Then response status should be 200                                     # openai_compatibility.go:121 -> messhias/router-expirement/tests/acceptance_tests.thenResponseStatus200
+    And response should be valid JSON                                      # openai_compatibility.go:123 -> messhias/router-expirement/tests/acceptance_tests.thenShouldValidJson
+    And response should contain an OpenAI-compatible chat completion shape # openai_compatibility.go:124 -> messhias/router-expirement/tests/acceptance_tests.thenShouldContainOpenAICompatible
+=== RUN   TestFeatures/Invalid_chat_completion_payload_returns_a_client_error
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /v1/chat/completions      --> messhias/router-expirement/internal/router.registerChatRoutes.func1 (1 handlers)
+
+  Scenario: Invalid chat completion payload returns a client error # openai_compatibility.feature:19
+    When send a POST request to "/v1/chat/completions" with body:  # openai_compatibility.go:120 -> messhias/router-expirement/tests/acceptance_tests.whenPostRequest
+      """
+      {
+        "model": "",
+        "messages": []
+      }
+      """
+    Then response status should be 400                             # openai_compatibility.go:122 -> messhias/router-expirement/tests/acceptance_tests.thenResponseStatus400
+
+Feature: Transparent proxy behavior
+=== RUN   TestFeatures/Essential_request_body_and_headers_reach_the_upstream_with_minimal_change
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /v1/chat/completions      --> messhias/router-expirement/internal/router.registerChatRoutes.func1 (1 handlers)
+
+  Scenario: Essential request body and headers reach the upstream with minimal change       # proxy_transparency.feature:3
+    Given router is available                                                               # common.go:52 -> messhias/router-expirement/tests/acceptance_tests.givenRouterIsAvailable
+    And upstream A is configured to echo the received request for chat completions          # proxy_transparency.go:233 -> messhias/router-expirement/tests/acceptance_tests.InitProxyTransparency.func1
+    When I send a POST request to "/v1/chat/completions" with headers:                      # proxy_transparency.go:236 -> messhias/router-expirement/tests/acceptance_tests.InitProxyTransparency.func2
+      | name         | value            |
+      | Content-Type | application/json |
+    And body:                                                                               # proxy_transparency.go:239 -> messhias/router-expirement/tests/acceptance_tests.InitProxyTransparency.func3
+      """
+      {
+        "model": "auto",
+        "messages": [{"role": "user", "content": "Hello"}]
+      }
+      """
+    Then upstream A should have received the same JSON body                                 # proxy_transparency.go:242 -> messhias/router-expirement/tests/acceptance_tests.InitProxyTransparency.func4
+    And upstream A should have received header "Content-Type" with value "application/json" # proxy_transparency.go:245 -> messhias/router-expirement/tests/acceptance_tests.InitProxyTransparency.func5
+
+Feature: Round-robin load balancing
+=== RUN   TestFeatures/Sequential_requests_alternate_between_two_upstreams
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /v1/chat/completions      --> messhias/router-expirement/internal/router.registerChatRoutes.func1 (1 handlers)
+
+  Scenario: Sequential requests alternate between two upstreams                 # round_robin.feature:3
+    Given router is available                                                   # common.go:52 -> messhias/router-expirement/tests/acceptance_tests.givenRouterIsAvailable
+    And upstream A and upstream B are configured for chat completions           # common.go:53 -> messhias/router-expirement/tests/acceptance_tests.InitCommon.givenUpstreamAAndUpstreamB.func2
+    When I send 4 sequential POST requests to "/v1/chat/completions" with body: # round_robin.go:108 -> messhias/router-expirement/tests/acceptance_tests.whenISend4SequentialPost
+      """
+      {
+        "model": "auto",
+        "messages": [{"role": "user", "content": "ping"}]
+      }
+      """
+    Then upstream handling order should be "A,B,A,B"                            # round_robin.go:109 -> messhias/router-expirement/tests/acceptance_tests.thenUpstreamHandlingOrderShouldBe
+
+Feature: Stateless routing
+=== RUN   TestFeatures/Different_clients_do_not_get_per-client_affinity_in_load_balancing
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /v1/chat/completions      --> messhias/router-expirement/internal/router.registerChatRoutes.func1 (1 handlers)
+
+  Scenario: Different clients do not get per-client affinity in load balancing                                                     # stateless_routing.feature:3
+    Given router is available                                                                                                      # common.go:52 -> messhias/router-expirement/tests/acceptance_tests.givenRouterIsAvailable
+    And upstream A and upstream B are configured for chat completions                                                              # common.go:53 -> messhias/router-expirement/tests/acceptance_tests.InitCommon.givenUpstreamAAndUpstreamB.func2
+    When following POST requests are sent to "/v1/chat/completions" in order with header "X-Client-Id" and JSON bodies built from: # stateless_routing.go:97 -> messhias/router-expirement/tests/acceptance_tests.whenClientSendsPOSTWithHeaderAndBody
+      | x_client_id | message_content |
+      | alice       | one             |
+      | bob         | two             |
+      | alice       | three           |
+    Then upstream handling order for the last 3 requests should be "A,B,A"                                                         # stateless_routing.go:98 -> messhias/router-expirement/tests/acceptance_tests.thenUpstreamHandlingOrderLast3ABABA
+
+Feature: Upstream failure handling
+=== RUN   TestFeatures/Router_returns_a_consistent_error_when_the_selected_upstream_fails
+[GIN-debug] [WARNING] Running in "debug" mode. Switch to "release" mode in production.
+ - using env:	export GIN_MODE=release
+ - using code:	gin.SetMode(gin.ReleaseMode)
+
+[GIN-debug] POST   /v1/chat/completions      --> messhias/router-expirement/internal/router.registerChatRoutes.func1 (1 handlers)
+
+  Scenario: Router returns a consistent error when the selected upstream fails # upstream_failures.feature:3
+    Given router is available                                                  # common.go:52 -> messhias/router-expirement/tests/acceptance_tests.givenRouterIsAvailable
+    And upstream A and upstream B are configured for chat completions          # common.go:53 -> messhias/router-expirement/tests/acceptance_tests.InitCommon.givenUpstreamAAndUpstreamB.func2
+    And upstream A is failing chat completions with status 503                 # upstream_failures.go:114 -> messhias/router-expirement/tests/acceptance_tests.givenUpstreamAFailingChatCompletions503
+    When send a POST request to "/v1/chat/completions" with body:              # openai_compatibility.go:120 -> messhias/router-expirement/tests/acceptance_tests.whenPostRequest
+      """
+      {
+        "model": "auto",
+        "messages": [{"role": "user", "content": "hello"}]
+      }
+      """
+    Then response status should be 502                                         # upstream_failures.go:115 -> messhias/router-expirement/tests/acceptance_tests.thenTheResponseStatusShouldBe
+    And response should be valid JSON                                          # openai_compatibility.go:123 -> messhias/router-expirement/tests/acceptance_tests.thenShouldValidJson
+    And response body should describe an upstream error                        # upstream_failures.go:117 -> messhias/router-expirement/tests/acceptance_tests.thenResponseBodyDescribesUpstreamError
+
+6 scenarios (6 passed)
+30 steps (30 passed)
+36.906458ms
+--- PASS: TestFeatures (0.04s)
+    --- PASS: TestFeatures/Successful_chat_completion_with_minimal_valid_payload (0.01s)
+    --- PASS: TestFeatures/Invalid_chat_completion_payload_returns_a_client_error (0.00s)
+    --- PASS: TestFeatures/Essential_request_body_and_headers_reach_the_upstream_with_minimal_change (0.00s)
+    --- PASS: TestFeatures/Sequential_requests_alternate_between_two_upstreams (0.00s)
+    --- PASS: TestFeatures/Different_clients_do_not_get_per-client_affinity_in_load_balancing (0.00s)
+    --- PASS: TestFeatures/Router_returns_a_consistent_error_when_the_selected_upstream_fails (0.00s)
+PASS
+ok  	messhias/router-expirement/features	1.857s
+=== RUN   TestChatRequestDto_ShouldPass
+=== RUN   TestChatRequestDto_ShouldPass/valid_minimal
+=== RUN   TestChatRequestDto_ShouldPass/invalid_json
+=== RUN   TestChatRequestDto_ShouldPass/empty_model_and_empty_message_fields
+=== RUN   TestChatRequestDto_ShouldPass/empty_model_empty_content
+=== RUN   TestChatRequestDto_ShouldPass/empty_model_empty_role
+--- PASS: TestChatRequestDto_ShouldPass (0.00s)
+    --- PASS: TestChatRequestDto_ShouldPass/valid_minimal (0.00s)
+    --- PASS: TestChatRequestDto_ShouldPass/invalid_json (0.00s)
+    --- PASS: TestChatRequestDto_ShouldPass/empty_model_and_empty_message_fields (0.00s)
+    --- PASS: TestChatRequestDto_ShouldPass/empty_model_empty_content (0.00s)
+    --- PASS: TestChatRequestDto_ShouldPass/empty_model_empty_role (0.00s)
+PASS
+ok  	messhias/router-expirement/internal/DTO	(cached)
+?   	messhias/router-expirement/internal/acceptance	[no test files]
+=== RUN   TestInvalidBalancerCreation_ShouldFail
+--- PASS: TestInvalidBalancerCreation_ShouldFail (0.00s)
+=== RUN   TestBalancerAlternates_ShouldPass
+--- PASS: TestBalancerAlternates_ShouldPass (0.00s)
+PASS
+ok  	messhias/router-expirement/internal/balancer	(cached)
+?   	messhias/router-expirement/internal/config	[no test files]
+?   	messhias/router-expirement/internal/proxy	[no test files]
+=== RUN   TestPOSTChatCompletions_proxiesToUpstream_openAICompatibleJSON_ShouldPass
+--- PASS: TestPOSTChatCompletions_proxiesToUpstream_openAICompatibleJSON_ShouldPass (0.00s)
+=== RUN   TestPOSTChatCompletions_upstreamReceivesPostMethod_ShouldPass
+--- PASS: TestPOSTChatCompletions_upstreamReceivesPostMethod_ShouldPass (0.00s)
+=== RUN   TestPOSTChatCompletions_upstreamReceivesSameBodyAndContentType_ShouldPass
+--- PASS: TestPOSTChatCompletions_upstreamReceivesSameBodyAndContentType_ShouldPass (0.00s)
+=== RUN   TestTimeout_ShouldPass
+--- PASS: TestTimeout_ShouldPass (0.10s)
+PASS
+ok  	messhias/router-expirement/internal/router	(cached)
+=== RUN   TestUpstreams_ShouldPass
+--- PASS: TestUpstreams_ShouldPass (0.01s)
+=== RUN   TestWrongMethodInWrongUrl_ShouldFail
+--- PASS: TestWrongMethodInWrongUrl_ShouldFail (0.00s)
+PASS
+ok  	messhias/router-expirement/internal/upstreamfake	(cached)
+?   	messhias/router-expirement/tests/acceptance_tests	[no test files]
+```
