@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"messhias/router-expirement/internal/balancer"
+	"messhias/router-expirement/internal/config"
 	"net/http"
 	"strings"
 	"sync"
@@ -49,7 +50,7 @@ func whenISend4SequentialPost(doc *godog.DocString) error {
 	}
 
 	body := []byte(strings.TrimSpace(doc.Content))
-	url := routerTest.srv.URL + "/v1/chat/completions"
+	url := routerTest.srv.URL + config.ChatCompletionsUrl
 
 	roundRobinState.mu.Lock()
 	roundRobinState.handlingOrder = nil

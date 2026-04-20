@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	Dto "messhias/router-expirement/internal/DTO"
+	"messhias/router-expirement/internal/config"
 	"net/http"
 	"testing"
 )
@@ -21,7 +22,7 @@ func TestUpstreams_ShouldPass(t *testing.T) {
 func TestWrongMethodInWrongUrl_ShouldFail(t *testing.T) {
 	srv := NewChatCompletionServerMock(t, "A")
 
-	req, err := http.NewRequest(http.MethodGet, srv.URL+"/v1/chat/completions", nil)
+	req, err := http.NewRequest(http.MethodGet, srv.URL+config.ChatCompletionsUrl, nil)
 
 	res, err := srv.Client().Do(req)
 	if err != nil {
@@ -51,7 +52,7 @@ func runUpStreamTest(t *testing.T, label string) {
 		t.Fatal(err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, srv.URL+"/v1/chat/completions", bytes.NewReader(body))
+	req, err := http.NewRequest(http.MethodPost, srv.URL+config.ChatCompletionsUrl, bytes.NewReader(body))
 
 	if err != nil {
 		t.Fatal(err)

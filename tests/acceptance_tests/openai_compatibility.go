@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"messhias/router-expirement/internal/config"
 	"messhias/router-expirement/internal/proxy"
 	"messhias/router-expirement/internal/router"
 	"net/http"
@@ -48,7 +49,7 @@ func givenRouterIsAvailable() error {
 func whenPostRequest(doc *godog.DocString) error {
 	body := []byte(doc.Content)
 
-	resp, err := http.Post(routerTest.srv.URL+"/v1/chat/completions", "application/json", bytes.NewBuffer(body))
+	resp, err := http.Post(routerTest.srv.URL+config.ChatCompletionsUrl, "application/json", bytes.NewBuffer(body))
 
 	if err != nil {
 		return err

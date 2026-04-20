@@ -3,6 +3,7 @@ package upstreamfake
 import (
 	"encoding/json"
 	"messhias/router-expirement/internal/DTO"
+	"messhias/router-expirement/internal/config"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,7 +16,7 @@ func NewChatCompletionServerMock(t *testing.T, label string) *httptest.Server {
 	t.Helper()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(config.ChatCompletionsUrl, func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 			return
