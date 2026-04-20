@@ -19,6 +19,6 @@ func thenUpstreamHandlingOrderLast3ABABA() error {
 }
 
 func InitStatelessRouting(ctx *godog.ScenarioContext) {
-	ctx.Step(`^following clients send POST "/v1/chat/completions" in order with header "X-Client-Id" and JSON bodies built from:$`, whenClientSendsPOSTWithHeaderAndBody)
+	ctx.Step(`^following POST requests are sent to "/v1/chat/completions" in order with header "X-Client-Id" and JSON bodies built from:$`, whenClientSendsPOSTWithHeaderAndBody)
 	ctx.Step(`^upstream handling order for the last 3 requests should be "A,B,A"$`, thenUpstreamHandlingOrderLast3ABABA)
 }
