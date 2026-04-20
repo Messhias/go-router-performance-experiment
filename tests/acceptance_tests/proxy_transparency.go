@@ -8,6 +8,7 @@ import (
 	"io"
 	Dto "messhias/router-expirement/internal/DTO"
 	"messhias/router-expirement/internal/balancer"
+	"messhias/router-expirement/internal/config"
 	"messhias/router-expirement/internal/proxy"
 	"net/http"
 	"net/http/httptest"
@@ -32,7 +33,7 @@ func givenUpstreamEchoForChatCompletions(th proxy.Transparency) error {
 	mu.Unlock()
 
 	echo := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path != "/v1/chat/completions" {
+		if r.URL.Path != config.ChatCompletionsUrl {
 			http.NotFound(w, r)
 			return
 		}
@@ -128,7 +129,7 @@ func whenBodyForProxyTransparency(th proxy.Transparency, doc *godog.DocString) e
 	}
 	mu.Unlock()
 
-	req, err := http.NewRequest(http.MethodPost, routerTest.srv.URL+"/v1/chat/completions", bytes.NewReader(body))
+	req, err := http.NewRequest(http.MethodPost, routerTest.srv.URL+config.ChatCompletionsUrl, bytes.NewReader(body))
 	if err != nil {
 		return err
 	}

@@ -6,6 +6,7 @@ import (
 	"io"
 	Dto "messhias/router-expirement/internal/DTO"
 	"messhias/router-expirement/internal/balancer"
+	"messhias/router-expirement/internal/config"
 	"messhias/router-expirement/internal/upstreamfake"
 	"net/http"
 	"net/http/httptest"
@@ -37,7 +38,7 @@ func TestPOSTChatCompletions_proxiesToUpstream_openAICompatibleJSON_ShouldPass(t
 	}`)
 
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, config.ChatCompletionsUrl, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	engine.ServeHTTP(w, req)
@@ -105,7 +106,7 @@ func TestPOSTChatCompletions_upstreamReceivesPostMethod_ShouldPass(t *testing.T)
 	body := []byte(`{"model":"auto","messages":[{"role":"user","content":"Hello"}]}`)
 	engine := NewEngine(bal, nil)
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, config.ChatCompletionsUrl, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	engine.ServeHTTP(w, req)
 
@@ -158,7 +159,7 @@ func TestPOSTChatCompletions_upstreamReceivesSameBodyAndContentType_ShouldPass(t
 	wantBody := []byte(`{"model":"auto","messages":[{"role":"user","content":"Hello"}]}`)
 	engine := NewEngine(bal, nil)
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(wantBody))
+	req := httptest.NewRequest(http.MethodPost, config.ChatCompletionsUrl, bytes.NewReader(wantBody))
 	req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	engine.ServeHTTP(w, req)
 
@@ -203,7 +204,7 @@ func TestTimeout_ShouldPass(t *testing.T) {
 	}`)
 
 	w := httptest.NewRecorder()
-	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", bytes.NewReader(body))
+	req := httptest.NewRequest(http.MethodPost, config.ChatCompletionsUrl, bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 
 	engine.ServeHTTP(w, req)

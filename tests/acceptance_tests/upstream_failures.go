@@ -1,9 +1,18 @@
 package acceptance_tests
 
-import "github.com/cucumber/godog"
+import (
+	"github.com/cucumber/godog"
+)
 
 func givenUpstreamAFailingChatCompletions503() error {
-	return godog.ErrPending
+	//failSrv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	//	if r.URL.Path != config.ChatCompletionsUrl {
+	//		http.NotFound(w, r)
+	//		return
+	//	}
+	//}))
+
+	return nil
 }
 
 func thenTheResponseStatusShouldBe(status int) error {

@@ -7,6 +7,7 @@ import (
 	"io"
 	Dto "messhias/router-expirement/internal/DTO"
 	"messhias/router-expirement/internal/balancer"
+	"messhias/router-expirement/internal/config"
 	"messhias/router-expirement/internal/proxy"
 	"net"
 	"net/http"
@@ -19,7 +20,7 @@ import (
 var upstreamRequestTimeout = 2 * time.Second
 
 func registerChatRoutes(engine *gin.Engine, robin balancer.RoundRobin, hooks *proxy.Hooks) {
-	engine.POST("/v1/chat/completions", func(c *gin.Context) {
+	engine.POST(config.ChatCompletionsUrl, func(c *gin.Context) {
 		body, err := io.ReadAll(c.Request.Body)
 
 		if err != nil {
@@ -38,7 +39,7 @@ func registerChatRoutes(engine *gin.Engine, robin balancer.RoundRobin, hooks *pr
 			return
 		}
 
-		upstreamURL := strings.TrimRight(target, "/") + "/v1/chat/completions"
+		upstreamURL := strings.TrimRight(target, "/") + config.ChatCompletionsUrl
 
 		ctx, cancel := context.WithTimeout(c.Request.Context(), upstreamRequestTimeout)
 		defer cancel()
