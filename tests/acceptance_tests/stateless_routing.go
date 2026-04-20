@@ -2,8 +2,14 @@ package acceptance_tests
 
 import "github.com/cucumber/godog"
 
-func whenClientSendsPOSTWithHeaderAndBody(doc *godog.Table) error {
-	_ = doc
+func whenClientSendsPOSTWithHeaderAndBody(table *godog.Table) error {
+
+	for _, row := range table.Rows[1:] {
+		if len(row.Cells) < 2 {
+			continue
+		}
+
+	}
 
 	return nil
 }
