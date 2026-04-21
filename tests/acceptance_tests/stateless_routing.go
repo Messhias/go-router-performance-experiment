@@ -3,7 +3,6 @@ package acceptance_tests
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	Dto "messhias/router-expirement/internal/DTO"
@@ -85,9 +84,7 @@ func thenUpstreamHandlingOrderLast3ABABA() error {
 	got = got[len(got)-3:]
 
 	if slices.Equal(got, want) == false {
-		return errors.New(
-			fmt.Sprintf("want %s, got %s", want, got),
-		)
+		return fmt.Errorf("want %s, got %s", want, got)
 	}
 
 	return nil
