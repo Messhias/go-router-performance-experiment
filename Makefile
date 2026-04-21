@@ -1,4 +1,4 @@
-.PHONY: full-smoke-test start smoke-test
+.PHONY: full-smoke-test start smoke-test artillery
 
 start:
 	@cp .env.example .env
@@ -40,3 +40,7 @@ smoke-test:
 		-H "Content-Type: application/json" \
 		-d '{"model":"auto","messages":[{"role":"user","content":"Hi, what you can do for me?"}],"max_tokens":32}'
 	@echo ""
+
+
+artillery:
+	docker compose --profile load run --rm artillery

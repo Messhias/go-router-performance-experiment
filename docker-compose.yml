@@ -37,3 +37,20 @@ services:
     environment:
       LLAMA_GEMMA_URL: "http://llama-gemma:8080"
       LLAMA_QWEN_URL: "http://llama-qwen:8080"
+
+  artillery:
+    profiles:
+      - load
+    image: oven/bun:1-alpine
+    depends_on:
+      - router
+      - llama-gemma
+      - llama-qwen
+    working_dir: /work
+    environment:
+      ARTILLERY_VERSION: ${ARTILLERY_VERSION:-latest}
+    volumes:
+      - ./load/artillery.yml:/work/artillery.yml:ro
+      - ./load/entrypoint.sh:/work/entrypoint.sh:ro
+      - ./load/out:/work/out:rw
+    command: ["sh", "/work/entrypoint.sh"]
