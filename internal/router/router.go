@@ -11,6 +11,7 @@ import (
 	"messhias/router-expirement/internal/proxy"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -102,4 +103,16 @@ func NewEngine(bal balancer.RoundRobin, hooks *proxy.Hooks) *gin.Engine {
 	engine := gin.New()
 	registerChatRoutes(engine, bal, hooks)
 	return engine
+}
+
+func init() {
+	raw := strings.TrimSpace(os.Getenv("UPSTREAM_REQUEST_TIMEOUT"))
+	if raw == "" {
+		return
+	}
+	d, err := time.ParseDuration(raw)
+	if err != nil || d <= 0 {
+		return
+	}
+	upstreamRequestTimeout = d
 }
