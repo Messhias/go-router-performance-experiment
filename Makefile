@@ -9,7 +9,7 @@ start:
 		echo "No running containers found."; \
 	fi
 	@docker compose up -d --build
-	@go test ./...
+	@go test ./... -v -race
 	@echo "Waiting for llama.cpp upstreams (GET /v1/models on 8081 and 8082)..."
 	@echo "(Up to ~5 min: 60 attempts x 5s; each check uses connect+transfer max 8s.)"
 	@ready=0; \
